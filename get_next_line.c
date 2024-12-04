@@ -6,20 +6,20 @@
 /*   By: nastamid <nastamid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/04 15:56:48 by nastamid          #+#    #+#             */
-/*   Updated: 2024/12/04 19:38:44 by nastamid         ###   ########.fr       */
+/*   Updated: 2024/12/04 20:00:30 by nastamid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include <stdio.h>
 
-int	contains_new_line(char *str)
+int	contains_new_line_or_end(char *str)
 {
 	if (!str || *str == '\0')
 		return (0);
 	while (*str)
 	{
-		if (*str == '\n')
+		if (*str == '\n' || *str == '\0')
 			return (1);
 		str++;
 	}
@@ -52,7 +52,7 @@ int	buf_to_content(char *buf, char *content)
 	return (1);
 }
 
-int	create_node(t_list *list, char *buf)
+int	add_node(t_list *list, char *buf)
 {
 	t_list	*last_node;
 	t_list	*new_node;
@@ -72,9 +72,35 @@ int	create_node(t_list *list, char *buf)
 	return (1);
 }
 
-char * get_combined_str(t_list *list)
+char	*get_combined_str(t_list *list)
 {
-	
+	int		i;
+	int		r;
+	char	*result;
+	t_list	*head;
+
+	i = 0;
+	r = 0;
+	head = list;
+	while (list->next)
+	{
+		i++;
+		list = list->next;
+	}
+	result = malloc(BUFFER_SIZE * (i + 1));
+	list = head;
+	i = 0;
+	while (list->next)
+	{
+		while (list->content[i])
+		{
+			result[(BUFFER_SIZE * r) + i] = list->content[i];
+			i++;
+		}
+		r++;
+		list = list->next;
+	}
+	return (result);
 }
 
 char	*get_next_line(int fd)
@@ -89,8 +115,10 @@ char	*get_next_line(int fd)
 		return (NULL);
 	while (read(fd, buf, BUFFER_SIZE))
 	{
+		if (contains_new_line_or_end(buf))
+			return (get_combined_str(list));
 		buf[BUFFER_SIZE] = '\0';
-		create_node(list, buf);
+		add_node(list, buf);
 	}
 	return (NULL);
 }
